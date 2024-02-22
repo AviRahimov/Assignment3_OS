@@ -18,7 +18,7 @@ struct client
 };
 
 // this is s function that is used to handle with the client recieving messages
-void handle_client(int);
+void handle_client(struct client* client);
 
 // this is a function that is used to handle the listening of the server, with accepting the clients
 void handle_listen(int);
@@ -55,7 +55,10 @@ int main(int argc, char *argv[])
         printf("Error listening on socket\n");
         return 1;
     }
-    handle_listen(server_socket);
+    // Create a thread to handle the listening
+    pthread_t listen_thread;
+    pthread_create(&listen_thread, NULL, (void*)handle_listen, server_socket);
+    pthread_join(listen_thread, NULL);
     close(server_socket);
     return 0;
 }
