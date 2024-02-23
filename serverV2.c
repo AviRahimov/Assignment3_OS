@@ -21,7 +21,7 @@ struct client
 void handle_client(struct client* client);
 
 // this is a function that is used to handle the listening of the server, with accepting the clients
-void handle_listen(int);
+void handle_listen(void *);
 static struct client** clients;
 static int client_count = 0;
 static pthread_mutex_t mutex;
@@ -57,9 +57,13 @@ int main(int argc, char *argv[])
     }
     // Create a thread to handle the listening
     pthread_t listen_thread;
-    pthread_create(&listen_thread, NULL, (void*)handle_listen, server_socket);
+    int * server_socket_ptr = (int *)malloc(sizeof(int));
+    *server_socket_ptr = server_socket;
+    pthread_create(&listen_thread, NULL, (void*(*)(void*))handle_listen, server_socket_ptr);
     pthread_join(listen_thread, NULL);
     close(server_socket);
+    // free the memory
+    free(server_socket_ptr);
     return 0;
 }
 
@@ -77,13 +81,16 @@ void handle_client(struct client* client)
             return;
         }
         buffer[bytes_read] = '\0';
-        printf("Client says: %s\n", buffer);
+        printf("%s says: %s\n", client->name, buffer);
         pthread_mutex_lock(&mutex);
         for(int i = 0; i < client_count; i++)
         {
             if (clients[i]->socket != client->socket) {
-                send(clients[i]->socket, client->name, strlen(client->name), 0);
-                send(clients[i]->socket, buffer, bytes_read, 0);
+                char msg [BUFFER_SIZE + 20];
+                bytes_read = bytes_read + strlen(client->name) + 2;
+                // snsprintf(buffer, sizeof(buffer), "%s: %s", client->name, buffer);
+                snprintf(msg, sizeof(msg), "%s: %s", client->name, buffer);
+                send(clients[i]->socket, msg, bytes_read, 0);
             }
         }
         pthread_mutex_unlock(&mutex);
@@ -107,8 +114,9 @@ void handle_client(struct client* client)
     pthread_mutex_unlock(&mutex);
 }
 
-void handle_listen(int server_socket)
+void handle_listen(void * server_socket_ptr)
 {
+    int server_socket = *((int*)server_socket_ptr);
     int client_socket;
     struct sockaddr_in client_addr;
     socklen_t client_addr_len = sizeof(client_addr);

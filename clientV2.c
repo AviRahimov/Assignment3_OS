@@ -13,8 +13,8 @@
 # define PORT 9034
 
 // This function is used to handle the keyboard input from the user and send it to the server
-void handle_keyboard_input(int);
-void handle_listen(int server_socket);
+void handle_keyboard_input(void *);
+void handle_listen(void *);
 static pthread_mutex_t mutex;
 
 // Create a socket and connect to the server
@@ -42,22 +42,24 @@ int main(int argc, char const *argv[])
     pthread_t listen_thread, keyboard_input_thread;
     // mutex init
     pthread_mutex_init(&mutex, NULL);
-    pthread_create(&listen_thread, NULL, (void*)handle_listen, server_socket);
-    pthread_create(&keyboard_input_thread, NULL, (void*)handle_keyboard_input, server_socket);
+    int * server_socket_ptr = (int *)malloc(sizeof(int));
+    *server_socket_ptr = server_socket;
+    pthread_create(&listen_thread, NULL, (void* (*)(void*))handle_listen, server_socket_ptr);
+    pthread_create(&keyboard_input_thread, NULL, (void* (*)(void*))handle_keyboard_input, server_socket_ptr);
     pthread_join(listen_thread, NULL);
     pthread_join(keyboard_input_thread, NULL);
     close(server_socket);
     return 0;
 }
 
-
-void handle_listen(int server_socket)
+void handle_listen(void * server_socket)
 {
+    int server_socket_int = *((int *)server_socket);
     char buffer[BUFFER_SIZE];
     int bytes_read;
     while(1)
     {   
-        bytes_read = recv(server_socket, buffer, sizeof(buffer), 0);
+        bytes_read = recv(server_socket_int, buffer, sizeof(buffer), 0);
         // if receiveing EOF character
         if(bytes_read == 0)
         {
@@ -73,8 +75,9 @@ void handle_listen(int server_socket)
     }
 }
 
-void handle_keyboard_input(int server_socket)
+void handle_keyboard_input(void * server_socket)
 {
+    int server_socket_int = *((int *)server_socket);
     char buffer[BUFFER_SIZE];
     while(1)
     {
@@ -84,7 +87,7 @@ void handle_keyboard_input(int server_socket)
             // lock the mutex
             pthread_mutex_lock(&mutex);
             buffer[strcspn(buffer, "\n")] = 0;
-            send(server_socket, buffer, strlen(buffer), 0);
+            send(server_socket_int, buffer, strlen(buffer), 0);
             // unlock the mutex
             pthread_mutex_unlock(&mutex);
         }
