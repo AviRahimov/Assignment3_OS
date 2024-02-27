@@ -1,80 +1,36 @@
 // server.c
-#include "Proactor.h" // Include the proactor library
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "proactor.h"
 
-#define PORT 9034
+#define MAX_CONNECTIONS 100
+#define PORT 8080
 
-struct client
-{
-    char * name;
-    int socket;
-};
+int main() {
+    int server_sock, client_sock;
+    struct sockaddr_in server, client;
+    socklen_t client_len = sizeof(client);
 
-void handle_client(struct client* client);
-static struct client** clients;
-static int client_count = 0;
-static pthread_mutex_t mutex;
+    server_sock = socket(AF_INET, SOCK_STREAM, 0);
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_port = htons(PORT);
 
-int main(int argc, char *argv[])
-{
-    int server_socket;
-    struct sockaddr_in server_addr;
-    int port = PORT;
-    if(argc > 1)
-    {
-        port = atoi(argv[1]);
-    }
-    server_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if(server_socket < 0)
-    {
-        printf("Error creating socket\n");
-        return 1;
-    }
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    if(bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
-    {
-        printf("Error binding socket\n");
-        return 1;
-    }
-    if(listen(server_socket, 5) < 0)
-    {
-        printf("Error listening on socket\n");
-        return 1;
+    bind(server_sock, (struct sockaddr *)&server, sizeof(server));
+    listen(server_sock, MAX_CONNECTIONS);
+
+    int sockets[MAX_CONNECTIONS];
+    int num_sockets = 0;
+
+    while((client_sock = accept(server_sock, (struct sockaddr *)&client, &client_len))) {
+        sockets[num_sockets++] = client_sock;
     }
 
-    // Start the proactor
-    start_proactor(server_socket);
-
-    // The rest of your server code...
-    // Wait for a shutdown signal
-    while(1) {
-        char command[100];
-        fgets(command, sizeof(command), stdin);
-
-        // If the command is "shutdown", break the loop
-        if(strncmp(command, "shutdown", 8) == 0) {
-            break;
-        }
-    }
-
-    // Stop the proactor
-    stop_proactor();
-
-    // Clean up resources
-    for(int i = 0; i < client_count; i++) {
-        close(clients[i]->socket);
-        free(clients[i]);
-    }
-    free(clients);
-    close(server_socket);
+    proactor(sockets, num_sockets);
 
     return 0;
 }
