@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include "proactor.h"
+#include <pthread.h>
 
 #define MAX_CONNECTIONS 100
 #define PORT 8080
@@ -23,14 +23,20 @@ int main() {
     bind(server_sock, (struct sockaddr *)&server, sizeof(server));
     listen(server_sock, MAX_CONNECTIONS);
 
-    int sockets[MAX_CONNECTIONS];
-    int num_sockets = 0;
-
     while((client_sock = accept(server_sock, (struct sockaddr *)&client, &client_len))) {
-        sockets[num_sockets++] = client_sock;
-    }
+        printf("Connection accepted\n");
 
-    proactor(sockets, num_sockets);
+        pthread_t thread_id;
+        int *new_sock = malloc(sizeof(int));
+        *new_sock = client_sock;
+
+        if(pthread_create(&thread_id, NULL, connection_handler, (void*) new_sock) < 0) {
+            perror("could not create thread");
+            return 1;
+        }
+
+        printf("Handler assigned\n");
+    }
 
     return 0;
 }
