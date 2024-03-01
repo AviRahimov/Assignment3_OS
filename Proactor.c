@@ -13,14 +13,16 @@
 #include <sys/epoll.h>
 #include <pthread.h>
 # include <stdbool.h> // for bool
+# include <unistd.h> // for close
+
 
 void *proactor_run_function(void * proactor)
 {
     Proactor * proactor_ = (Proactor *)proactor;
-    Proactor_node * curr = proactor_->head;
+    Proactor_node * curr = (Proactor_node *)proactor_->head;
     while (curr != NULL && proactor_->is_running)
     {
-        if (curr->handler != NULL)
+        if (curr->handler != 0)
         {
             curr->handler(curr->socket);
         }
@@ -34,14 +36,14 @@ void *proactor_run_function(void * proactor)
 Proactor * create_proactor()
 {
     Proactor * proactor = (Proactor *)malloc(sizeof(Proactor));
-    proactor->thread = NULL;
+    proactor->thread = 0;
     proactor->head = NULL;
     proactor->is_running = false;
     proactor->size = 0;
     return proactor;
 }
 
-int run_proactor(Proactor * proactor)
+int runProactor(Proactor * proactor)
 {
     Proactor * proactor_ = proactor;
     proactor_->is_running = true;
@@ -49,11 +51,11 @@ int run_proactor(Proactor * proactor)
     return 0;
 }
 
-int stop_proactor(Proactor * proactor)
+int stopProactor(Proactor * proactor)
 {
     Proactor * proactor_ = proactor;
     proactor_->is_running = false;
-    pthtead_stop(proactor->thread);
+    pthread_cancel(proactor->thread);
     pthread_join(proactor->thread, NULL);
     return 0;
 }
@@ -113,7 +115,7 @@ int destroyProactor(Proactor * proactor)
     Proactor * proactor_ = proactor;
     if (proactor_->is_running)
     {
-        stop_proactor(proactor_);
+        stopProactor(proactor_);
     }
     if (proactor_->head != NULL)
     {

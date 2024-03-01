@@ -1,5 +1,21 @@
+# include <pthread.h>
+# include <stdbool.h>
+# include <sys/socket.h>
+# include <stdlib.h>
+# include <stdio.h>
+# include <unistd.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <sys/epoll.h>
+
+# ifndef PROACTOR_H
 # define PROACTOR_H
-# ifdef PROACTOR_H
+
+typedef struct Proactor Proactor;
+typedef struct Proactor_node Proactor_node;
+typedef Proactor * (*handler_t)(int);
 
 typedef struct Proactor
 {
@@ -17,14 +33,14 @@ typedef struct Proactor_node
 {
     // the socket
     int socket;
-    // handler
+    // the handler
     handler_t handler;
-    // the next proactor
+    // the next node
     Proactor_node *next;
 } Proactor_node;
 
 // this method is respinsible for creating a proactor, a list of sockets and their appropriate handlers
-Proactor *create_proactor(int size);
+Proactor *create_proactor();
 
 // this function start the proactor work
 int runProactor(Proactor * proactor);
@@ -41,4 +57,4 @@ int removeSocket(Proactor * proactor, int socket);
 // destroy the proactor
 int destroyProactor(Proactor * proactor);
 
-# endif // PROACTOR_H
+# endif
