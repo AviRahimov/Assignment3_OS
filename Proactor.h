@@ -13,6 +13,7 @@
 # ifndef PROACTOR_H
 # define PROACTOR_H
 
+
 typedef struct Proactor Proactor;
 typedef struct Proactor_node Proactor_node;
 typedef Proactor * (*handler_t)(int);
@@ -56,5 +57,7 @@ int removeSocket(Proactor * proactor, int socket);
 
 // destroy the proactor
 int destroyProactor(Proactor * proactor);
+
+void *proactor_run_function(void * proactor);
 
 # endif
