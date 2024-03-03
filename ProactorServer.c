@@ -144,6 +144,7 @@ int main(int argc, char *argv[])
     runProactor(proactor);
     addSocket(proactor, server_socket, (void *)handle_listen);
     pthread_join(proactor->thread, NULL);
+    stopProactor(proactor);
     destroyProactor(proactor);
     close(server_socket);
     return 0;
