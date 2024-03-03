@@ -1,21 +1,19 @@
-# Makefile for ProactorServer
+# Recursive makefile for the assignment 3, that call all makefiles in the subdirectories
 
-CC = gcc -g
-CFLAGS = -Wall
-LDFLAGS = -lpthread
+# List of subdirectories containing code and Makefile
+SUBDIRS := Section1 Section2 Section3
 
-all: ProactorServer
+# Default target
+all: $(SUBDIRS)
 
-ProactorServer: ProactorServer.o Proactor.o
-	$(CC) $(CFLAGS) -o ProactorServer ProactorServer.o Proactor.o $(LDFLAGS)
+# Recursively execute make in each subdirectory
+$(SUBDIRS):
+	$(MAKE) -C $@
 
-ProactorServer.o: ProactorServer.c Proactor.h
-	$(CC) $(CFLAGS) -c ProactorServer.c
+.PHONY: all $(SUBDIRS)
 
-Proactor.o: Proactor.c Proactor.h
-	$(CC) $(CFLAGS) -c Proactor.c
-
+# Clean up generated files
 clean:
-	rm -f ProactorServer ProactorServer.o Proactor.o
-
-.PHONY: all clean
+	for dir in $(SUBDIRS); do \
+		$(MAKE) -C $$dir clean; \
+	done
