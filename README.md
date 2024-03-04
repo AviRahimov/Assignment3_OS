@@ -86,5 +86,10 @@ Now, to run the clients, you need to run the following command:
 1. ```bash
     ./client
 
+####
 
+### Acknowledgments
+
+Thanks to all the contributors who have invested their time in improving this assignment and make it all work well:
+Jonatan boritsky, Avi rahimov, Avichay mazin.
 
