@@ -27,9 +27,15 @@ void sighandler(int signum)
         pthread_join(proactor->thread, NULL);
         destroyProactor(proactor);
     }
+    for(int i = 0; i < client_count; i++)
+    {
+        close(clients[i]->socket);
+        free(clients[i]->name);
+        free(clients[i]);
+    }
+    free(clients);
     exit(EXIT_SUCCESS);
 }
-
 
 void handle_client(struct client* client)
 {

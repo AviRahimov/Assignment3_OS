@@ -26,15 +26,18 @@ void handle_listen(void *);
 static struct client** clients;
 static int client_count = 0;
 static pthread_mutex_t mutex;
+pthread_attr_t thread_attr;
 
 void signal_handler(int signal)
 {
     for(int i = 0; i < client_count; i++)
     {
         close(clients[i]->socket);
+        free(clients[i]->name);
         free(clients[i]);
     }
     free(clients);
+    pthread_attr_destroy(&thread_attr);
     pthread_mutex_destroy(&mutex);
     exit(0);
 }
@@ -131,10 +134,10 @@ void handle_client(struct client* client)
 void handle_listen(void * server_socket_ptr)
 {
     int server_socket = *((int*)server_socket_ptr);
+    free(server_socket_ptr);
     int client_socket;
     struct sockaddr_in client_addr;
     socklen_t client_addr_len = sizeof(client_addr);
-    pthread_attr_t thread_attr;
     pthread_mutex_init(&mutex, NULL); // initialize the mutex
     pthread_attr_init(&thread_attr); // initialize the thread attribute
     pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED); // set the thread to be detached - once
