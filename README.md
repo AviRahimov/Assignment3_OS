@@ -38,4 +38,53 @@ Begin with a thorough review of Beej's Guide to Network Programming to solidify 
 - **Dual-threaded Design:** The client features a dual-threaded architecture, with one thread dedicated to listening to server communications and another for keyboard input. This design eliminates the need for busy waiting, ensuring that the user interface remains responsive and efficient.
 - **Testing Server Functionality:** The client serves as a critical component for testing the server's functionality, particularly its ability to handle concurrent connections and manage communication threads effectively. It is essential for demonstrating the server's adherence to the designed specifications and its capability to handle real-world chat scenarios.
 
+## How to Compile and Run
+### Compiling the Server and Client
+For the server, you should do the following:
+1. Open a terminal and navigate to the directory containing the `server.c` file.
+2. Run the following command to compile the server application:
+   ```bash
+   gcc -o server server.c -lpthread
+
+#### Compiling the Client
+In another terminal you should write the following:
+1. ```bash
+      gcc -o client client.c -lpthread
+
+#### Connect another clients to server 
+Please note that you can connect another clients by just open another terminals and run the following command:
+1. ```bash
+    gcc -o client client1.c -lpthread
+
+## Part B
+In this section, we develop a universal proactor that monitors one or more sockets (representing client connections). 
+Upon detecting a new connection, the proactor initiates a fresh thread dedicated to managing the interaction with that specific client. 
+The exact count of threads remains variable, adjusting dynamically in response to the flux of incoming connections. 
+The focus of this segment is on establishing the overarching proactor mechanism and the construction of the corresponding proactor library.
+
+## Part C
+In this segment, we will operate the server initially created in Part A, now integrated with the general proactor framework devised in Part B.
+
+First, in this part you need to open a terminal in the right folder and run the following:
+1. ```bash
+    make all
+
+#### 
+After that, get into Section 3 in each terminal with cd Section3 command on terminal:
+1. ```bash
+    cd Section3
+####
+Next, run these commands for the server:
+1. ```bash
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+    
+2. ```bash
+    ./proactor_server
+
+####
+Now, to run the clients, you need to run the following command:
+1. ```bash
+    ./client
+
+
 
