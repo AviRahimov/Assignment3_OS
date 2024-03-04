@@ -5,6 +5,7 @@
 #include <sys/socket.h> // for socket, bind, listen, accept, recv
 #include <netinet/in.h> // for sockaddr_in
 #include <pthread.h> // for pthread
+# include <signal.h> // for signal
 
 # define PORT 9034
 # define MAX_BACKLOG 100
@@ -26,12 +27,25 @@ static struct client** clients;
 static int client_count = 0;
 static pthread_mutex_t mutex;
 
+void signal_handler(int signal)
+{
+    for(int i = 0; i < client_count; i++)
+    {
+        close(clients[i]->socket);
+        free(clients[i]);
+    }
+    free(clients);
+    pthread_mutex_destroy(&mutex);
+    exit(0);
+}
+
 // this is the main that creates the server and listens to the clients using the handle_listen function
 int main(int argc, char *argv[])
 {
     int server_socket;
     struct sockaddr_in server_addr;
     int port = PORT;
+    signal(SIGINT, signal_handler);
     if(argc > 1)
     {
         port = atoi(argv[1]);

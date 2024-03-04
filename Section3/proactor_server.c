@@ -1,5 +1,7 @@
 # include "proactor.h"
 # include <string.h>
+# include <unistd.h>
+# include <signal.h>
 # define BUFFER_SIZE 1024
 # define PORT 9034
 
@@ -13,7 +15,20 @@ struct client
 static struct client** clients;
 static int client_count = 0;
 static pthread_mutex_t mutex;
-Proactor * proactor;
+Proactor * proactor = NULL;
+
+// crate sighandler to handle the SIGINT signal to stop the proactor
+void sighandler(int signum)
+{
+    if(proactor != NULL)
+    {
+        printf("Stopping proactor\n");
+        stopProactor(proactor);
+        pthread_join(proactor->thread, NULL);
+        destroyProactor(proactor);
+    }
+    exit(EXIT_SUCCESS);
+}
 
 
 void handle_client(struct client* client)
@@ -117,6 +132,8 @@ int main(int argc, char *argv[])
     int port = PORT;
     int backlog = 10000;
     proactor = create_proactor();
+    // register the sighandler to handle the SIGINT signal
+    signal(SIGINT, sighandler);
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if(server_socket < 0)
     {
@@ -144,6 +161,7 @@ int main(int argc, char *argv[])
     runProactor(proactor);
     addSocket(proactor, server_socket, (void *)handle_listen);
     pthread_join(proactor->thread, NULL);
+    printf("Stopping proactor\n");
     stopProactor(proactor);
     destroyProactor(proactor);
     close(server_socket);
