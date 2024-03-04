@@ -8,9 +8,18 @@
 # include <arpa/inet.h> // for inet_addr
 # include <sys/types.h> // for close
 # include <sys/socket.h> // for close
+# include <signal.h> // for signal
 
 # define BUFFER_SIZE 1024
 # define PORT 9034
+
+ int * server_socket_ptr;
+
+void signal_handler(int signum)
+ {
+     close(*server_socket_ptr);
+     exit(0);
+ }
 
 // This function is used to handle the keyboard input from the user and send it to the server
 void handle_keyboard_input(void *);
@@ -23,6 +32,7 @@ int main(int argc, char const *argv[])
     int server_socket;
     struct sockaddr_in server_addr;
     int port = PORT;
+    signal(SIGINT, signal_handler);
 
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if(server_socket < 0)
@@ -42,7 +52,7 @@ int main(int argc, char const *argv[])
     pthread_t listen_thread, keyboard_input_thread;
     // mutex init
     pthread_mutex_init(&mutex, NULL);
-    int * server_socket_ptr = (int *)malloc(sizeof(int));
+    server_socket_ptr = (int *)malloc(sizeof(int));
     *server_socket_ptr = server_socket;
     pthread_create(&listen_thread, NULL, (void* (*)(void*))handle_listen, server_socket_ptr);
     pthread_create(&keyboard_input_thread, NULL, (void* (*)(void*))handle_keyboard_input, server_socket_ptr);
