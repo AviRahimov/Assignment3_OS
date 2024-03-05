@@ -14,8 +14,7 @@ culminating in a comprehensive exploration of advanced networking concepts withi
 
 ## Objective
 
-The primary goal is to construct a multithreaded chat server and client that navigate the complexities of multiple annoyances without resorting to multi-process or asynchronous I/O solutions. This includes:
-
+The main aim is to create a chat system, both server and client sides, that can handle various challenges using multiple threads. This should be done without using multiple processes or asynchronous input/output techniques
 - **Section A:** Building a chat system that operates in a busy environment, using threads to manage client-server interactions.
 - **Section B:** Developing a general proactor pattern utilizing the chat application from Section A, emphasizing dynamic thread creation for handling connections.
 - **Section C:** Applying the proactor pattern to reimagine the chat server from Section A, demonstrating the practical benefits of this model in real-world applications.
